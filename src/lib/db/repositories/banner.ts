@@ -1,19 +1,16 @@
 import { eq, count } from 'drizzle-orm';
-import { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
-import { randomUUID } from 'crypto';
+import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as schema from '../schema';
 import { banners, Banner, NewBanner } from '../schema';
 import { CreateBannerInput, UpdateBannerInput } from '@/types/banner';
 
 export class BannerRepository {
-  constructor(private db: BetterSQLite3Database<typeof schema>) {}
+  constructor(private db: PostgresJsDatabase<typeof schema>) {}
 
   async create(input: CreateBannerInput): Promise<Banner> {
     const now = new Date();
-    const id = randomUUID();
 
     const newBanner: NewBanner = {
-      id,
       projectId: input.projectId,
       personaId: input.personaId ?? null,
       prompt: input.prompt,
@@ -28,9 +25,9 @@ export class BannerRepository {
       createdAt: now,
     };
 
-    await this.db.insert(banners).values(newBanner);
+    const result = await this.db.insert(banners).values(newBanner).returning();
 
-    return this.findById(id) as Promise<Banner>;
+    return result[0];
   }
 
   async findById(id: string): Promise<Banner | null> {
@@ -76,12 +73,13 @@ export class BannerRepository {
       updateData.generationCompletedAt = input.generationCompletedAt;
     }
 
-    await this.db
+    const result = await this.db
       .update(banners)
       .set(updateData)
-      .where(eq(banners.id, id));
+      .where(eq(banners.id, id))
+      .returning();
 
-    return this.findById(id);
+    return result[0] ?? null;
   }
 
   async delete(id: string): Promise<boolean> {

@@ -1,32 +1,29 @@
 import { eq } from 'drizzle-orm';
-import { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
-import { randomUUID } from 'crypto';
+import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as schema from '../schema';
 import { projects, Project, NewProject } from '../schema';
 import { CreateProjectInput, UpdateProjectInput } from '@/types/project';
 
 export class ProjectRepository {
-  constructor(private db: BetterSQLite3Database<typeof schema>) {}
+  constructor(private db: PostgresJsDatabase<typeof schema>) {}
 
   async create(input: CreateProjectInput): Promise<Project> {
     const now = new Date();
-    const id = randomUUID();
 
     const newProject: NewProject = {
-      id,
       name: input.name,
       description: input.description ?? null,
       productUrl: input.productUrl ?? null,
       productName: input.productName ?? null,
       productCategory: input.productCategory ?? null,
-      targetInfo: input.targetInfo ? JSON.stringify(input.targetInfo) : null,
+      targetInfo: input.targetInfo ?? null,
       createdAt: now,
       updatedAt: now,
     };
 
-    await this.db.insert(projects).values(newProject);
+    const result = await this.db.insert(projects).values(newProject).returning();
 
-    return this.findById(id) as Promise<Project>;
+    return result[0];
   }
 
   async findById(id: string): Promise<Project | null> {
@@ -59,15 +56,16 @@ export class ProjectRepository {
     if (input.productName !== undefined) updateData.productName = input.productName;
     if (input.productCategory !== undefined) updateData.productCategory = input.productCategory;
     if (input.targetInfo !== undefined) {
-      updateData.targetInfo = JSON.stringify(input.targetInfo);
+      updateData.targetInfo = input.targetInfo;
     }
 
-    await this.db
+    const result = await this.db
       .update(projects)
       .set(updateData)
-      .where(eq(projects.id, id));
+      .where(eq(projects.id, id))
+      .returning();
 
-    return this.findById(id);
+    return result[0] ?? null;
   }
 
   async delete(id: string): Promise<boolean> {

@@ -1,35 +1,32 @@
 import { eq } from 'drizzle-orm';
-import { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
-import { randomUUID } from 'crypto';
+import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as schema from '../schema';
 import { personas, Persona, NewPersona } from '../schema';
 import { CreatePersonaInput, UpdatePersonaInput } from '@/types/persona';
 
 export class PersonaRepository {
-  constructor(private db: BetterSQLite3Database<typeof schema>) {}
+  constructor(private db: PostgresJsDatabase<typeof schema>) {}
 
   async create(input: CreatePersonaInput): Promise<Persona> {
     const now = new Date();
-    const id = randomUUID();
 
     const newPersona: NewPersona = {
-      id,
       projectId: input.projectId,
       name: input.name,
       ageRange: input.ageRange ?? null,
       gender: input.gender ?? null,
       occupation: input.occupation ?? null,
       incomeLevel: input.incomeLevel ?? null,
-      interests: input.interests ? JSON.stringify(input.interests) : null,
-      painPoints: input.painPoints ? JSON.stringify(input.painPoints) : null,
+      interests: input.interests ?? [],
+      painPoints: input.painPoints ?? [],
       buyingMotivation: input.buyingMotivation ?? null,
       communicationStyle: input.communicationStyle ?? null,
       createdAt: now,
     };
 
-    await this.db.insert(personas).values(newPersona);
+    const result = await this.db.insert(personas).values(newPersona).returning();
 
-    return this.findById(id) as Promise<Persona>;
+    return result[0];
   }
 
   async findById(id: string): Promise<Persona | null> {
@@ -39,20 +36,14 @@ export class PersonaRepository {
       .where(eq(personas.id, id))
       .limit(1);
 
-    if (!result[0]) {
-      return null;
-    }
-
-    return this.transformPersona(result[0]);
+    return result[0] ?? null;
   }
 
   async findByProjectId(projectId: string): Promise<Persona[]> {
-    const results = await this.db
+    return this.db
       .select()
       .from(personas)
       .where(eq(personas.projectId, projectId));
-
-    return results.map((p) => this.transformPersona(p));
   }
 
   async update(id: string, input: UpdatePersonaInput): Promise<Persona | null> {
@@ -69,10 +60,10 @@ export class PersonaRepository {
     if (input.occupation !== undefined) updateData.occupation = input.occupation;
     if (input.incomeLevel !== undefined) updateData.incomeLevel = input.incomeLevel;
     if (input.interests !== undefined) {
-      updateData.interests = JSON.stringify(input.interests);
+      updateData.interests = input.interests;
     }
     if (input.painPoints !== undefined) {
-      updateData.painPoints = JSON.stringify(input.painPoints);
+      updateData.painPoints = input.painPoints;
     }
     if (input.buyingMotivation !== undefined) {
       updateData.buyingMotivation = input.buyingMotivation;
@@ -81,12 +72,13 @@ export class PersonaRepository {
       updateData.communicationStyle = input.communicationStyle;
     }
 
-    await this.db
+    const result = await this.db
       .update(personas)
       .set(updateData)
-      .where(eq(personas.id, id));
+      .where(eq(personas.id, id))
+      .returning();
 
-    return this.findById(id);
+    return result[0] ?? null;
   }
 
   async delete(id: string): Promise<boolean> {
@@ -97,13 +89,5 @@ export class PersonaRepository {
 
     await this.db.delete(personas).where(eq(personas.id, id));
     return true;
-  }
-
-  private transformPersona(raw: typeof personas.$inferSelect): Persona {
-    return {
-      ...raw,
-      interests: raw.interests ? JSON.parse(raw.interests) : [],
-      painPoints: raw.painPoints ? JSON.parse(raw.painPoints) : [],
-    } as Persona;
   }
 }

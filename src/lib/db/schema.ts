@@ -1,20 +1,21 @@
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+import { pgTable, text, timestamp, uuid, jsonb } from 'drizzle-orm/pg-core';
 
-export const projects = sqliteTable('projects', {
-  id: text('id').primaryKey(),
+// AI Creative System tables with acs_ prefix
+export const projects = pgTable('acs_projects', {
+  id: uuid('id').primaryKey().defaultRandom(),
   name: text('name').notNull(),
   description: text('description'),
   productUrl: text('product_url'),
   productName: text('product_name'),
   productCategory: text('product_category'),
-  targetInfo: text('target_info'), // JSON string
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
+  targetInfo: jsonb('target_info'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
-export const personas = sqliteTable('personas', {
-  id: text('id').primaryKey(),
-  projectId: text('project_id')
+export const personas = pgTable('acs_personas', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  projectId: uuid('project_id')
     .notNull()
     .references(() => projects.id, { onDelete: 'cascade' }),
   name: text('name').notNull(),
@@ -22,33 +23,31 @@ export const personas = sqliteTable('personas', {
   gender: text('gender'),
   occupation: text('occupation'),
   incomeLevel: text('income_level'),
-  interests: text('interests'), // JSON array
-  painPoints: text('pain_points'), // JSON array
+  interests: jsonb('interests').default([]),
+  painPoints: jsonb('pain_points').default([]),
   buyingMotivation: text('buying_motivation'),
   communicationStyle: text('communication_style'),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
-export const banners = sqliteTable('banners', {
-  id: text('id').primaryKey(),
-  projectId: text('project_id')
+export const banners = pgTable('acs_banners', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  projectId: uuid('project_id')
     .notNull()
     .references(() => projects.id, { onDelete: 'cascade' }),
-  personaId: text('persona_id').references(() => personas.id, {
+  personaId: uuid('persona_id').references(() => personas.id, {
     onDelete: 'set null',
   }),
   prompt: text('prompt').notNull(),
   imagePath: text('image_path'),
-  aspectRatio: text('aspect_ratio').notNull(), // '16:9', '1:1', '4:5', '9:16'
-  size: text('size').notNull(), // '4K', '2K', '1080p'
-  status: text('status').notNull().default('pending'), // 'pending', 'generating', 'completed', 'failed'
+  aspectRatio: text('aspect_ratio').notNull(),
+  size: text('size').notNull(),
+  status: text('status').notNull().default('pending'),
   metaAdId: text('meta_ad_id'),
   errorMessage: text('error_message'),
-  generationStartedAt: integer('generation_started_at', { mode: 'timestamp' }),
-  generationCompletedAt: integer('generation_completed_at', {
-    mode: 'timestamp',
-  }),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+  generationStartedAt: timestamp('generation_started_at', { withTimezone: true }),
+  generationCompletedAt: timestamp('generation_completed_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
 // Type exports for use with Drizzle ORM
