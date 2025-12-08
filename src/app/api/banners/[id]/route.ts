@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb } from '@/lib/db';
-import { BannerRepository } from '@/lib/db/repositories/banner';
+import { BannerRepository } from '@/lib/supabase/repositories';
 import { UpdateBannerInput } from '@/types/banner';
 import { ApiResponse } from '@/types/api';
 
@@ -12,8 +11,7 @@ interface RouteParams {
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
-    const db = getDb();
-    const repository = new BannerRepository(db);
+    const repository = new BannerRepository();
     const banner = await repository.findById(id);
 
     if (!banner) {
@@ -52,8 +50,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     if (body.metaAdId !== undefined) input.metaAdId = body.metaAdId;
     if (body.status !== undefined) input.status = body.status;
 
-    const db = getDb();
-    const repository = new BannerRepository(db);
+    const repository = new BannerRepository();
     const banner = await repository.update(id, input);
 
     if (!banner) {
@@ -86,8 +83,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
-    const db = getDb();
-    const repository = new BannerRepository(db);
+    const repository = new BannerRepository();
     const deleted = await repository.delete(id);
 
     if (!deleted) {

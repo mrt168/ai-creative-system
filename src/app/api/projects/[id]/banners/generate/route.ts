@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb } from '@/lib/db';
-import { ProjectRepository } from '@/lib/db/repositories/project';
-import { BannerRepository } from '@/lib/db/repositories/banner';
-import { PersonaRepository } from '@/lib/db/repositories/persona';
+import { ProjectRepository, BannerRepository, PersonaRepository } from '@/lib/supabase/repositories';
 import { getGeminiClient } from '@/lib/gemini/client';
 import { ImageGenerator } from '@/lib/gemini/image-generator';
 import { BannerGenerationQueue } from '@/lib/queue/banner-queue';
@@ -18,12 +15,11 @@ let queueInstance: BannerGenerationQueue | null = null;
 
 function getQueue(): BannerGenerationQueue {
   if (!queueInstance) {
-    const db = getDb();
     const client = getGeminiClient();
     const outputDir = path.join(process.cwd(), 'public', 'generated');
     const imageGenerator = new ImageGenerator(client, outputDir);
-    const bannerRepository = new BannerRepository(db);
-    const personaRepository = new PersonaRepository(db);
+    const bannerRepository = new BannerRepository();
+    const personaRepository = new PersonaRepository();
 
     queueInstance = new BannerGenerationQueue(
       imageGenerator,
@@ -74,8 +70,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const db = getDb();
-    const projectRepository = new ProjectRepository(db);
+    const projectRepository = new ProjectRepository();
 
     // Verify project exists
     const project = await projectRepository.findById(id);

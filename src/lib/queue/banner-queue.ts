@@ -1,7 +1,6 @@
 import { randomUUID } from 'crypto';
 import { ImageGenerator, BannerGenerationInput } from '../gemini/image-generator';
-import { BannerRepository } from '../db/repositories/banner';
-import { PersonaRepository } from '../db/repositories/persona';
+import { BannerRepository, PersonaRepository } from '../supabase/repositories';
 import { buildBannerPrompt } from '../utils/prompts';
 
 export type JobStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';

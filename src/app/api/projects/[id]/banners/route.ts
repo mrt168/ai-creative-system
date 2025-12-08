@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb } from '@/lib/db';
-import { ProjectRepository } from '@/lib/db/repositories/project';
-import { BannerRepository } from '@/lib/db/repositories/banner';
+import { ProjectRepository, BannerRepository } from '@/lib/supabase/repositories';
 import { ApiResponse } from '@/types/api';
 
 interface RouteParams {
@@ -12,9 +10,8 @@ interface RouteParams {
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
-    const db = getDb();
-    const projectRepository = new ProjectRepository(db);
-    const bannerRepository = new BannerRepository(db);
+    const projectRepository = new ProjectRepository();
+    const bannerRepository = new BannerRepository();
 
     // Verify project exists
     const project = await projectRepository.findById(id);

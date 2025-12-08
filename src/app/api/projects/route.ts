@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb } from '@/lib/db';
-import { ProjectRepository } from '@/lib/db/repositories/project';
+import { ProjectRepository } from '@/lib/supabase/repositories';
 import { CreateProjectInput } from '@/types/project';
 import { ApiResponse } from '@/types/api';
 
 // GET /api/projects - List all projects
 export async function GET() {
   try {
-    const db = getDb();
-    const repository = new ProjectRepository(db);
+    const repository = new ProjectRepository();
     const projects = await repository.findAll();
 
     return NextResponse.json<ApiResponse>({
@@ -52,8 +50,7 @@ export async function POST(request: NextRequest) {
       targetInfo: body.targetInfo,
     };
 
-    const db = getDb();
-    const repository = new ProjectRepository(db);
+    const repository = new ProjectRepository();
     const project = await repository.create(input);
 
     return NextResponse.json<ApiResponse>(

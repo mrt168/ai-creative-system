@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb } from '@/lib/db';
-import { ProjectRepository } from '@/lib/db/repositories/project';
-import { PersonaRepository } from '@/lib/db/repositories/persona';
+import { ProjectRepository, PersonaRepository } from '@/lib/supabase/repositories';
 import { getGeminiClient } from '@/lib/gemini/client';
 import { PersonaAnalyzer } from '@/lib/gemini/persona-analyzer';
 import { ApiResponse } from '@/types/api';
@@ -38,9 +36,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const db = getDb();
-    const projectRepository = new ProjectRepository(db);
-    const personaRepository = new PersonaRepository(db);
+    const projectRepository = new ProjectRepository();
+    const personaRepository = new PersonaRepository();
 
     // Verify project exists
     const project = await projectRepository.findById(id);

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb } from '@/lib/db';
-import { PersonaRepository } from '@/lib/db/repositories/persona';
+import { PersonaRepository } from '@/lib/supabase/repositories';
 import { UpdatePersonaInput } from '@/types/persona';
 import { ApiResponse } from '@/types/api';
 
@@ -12,8 +11,7 @@ interface RouteParams {
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
-    const db = getDb();
-    const repository = new PersonaRepository(db);
+    const repository = new PersonaRepository();
     const persona = await repository.findById(id);
 
     if (!persona) {
@@ -59,8 +57,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     if (body.buyingMotivation !== undefined) input.buyingMotivation = body.buyingMotivation;
     if (body.communicationStyle !== undefined) input.communicationStyle = body.communicationStyle;
 
-    const db = getDb();
-    const repository = new PersonaRepository(db);
+    const repository = new PersonaRepository();
     const persona = await repository.update(id, input);
 
     if (!persona) {
@@ -93,8 +90,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
-    const db = getDb();
-    const repository = new PersonaRepository(db);
+    const repository = new PersonaRepository();
     const deleted = await repository.delete(id);
 
     if (!deleted) {

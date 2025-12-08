@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb } from '@/lib/db';
-import { ProjectRepository } from '@/lib/db/repositories/project';
+import { ProjectRepository } from '@/lib/supabase/repositories';
 import { UpdateProjectInput } from '@/types/project';
 import { ApiResponse } from '@/types/api';
 
@@ -12,8 +11,7 @@ interface RouteParams {
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
-    const db = getDb();
-    const repository = new ProjectRepository(db);
+    const repository = new ProjectRepository();
     const project = await repository.findById(id);
 
     if (!project) {
@@ -56,8 +54,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     if (body.productCategory !== undefined) input.productCategory = body.productCategory;
     if (body.targetInfo !== undefined) input.targetInfo = body.targetInfo;
 
-    const db = getDb();
-    const repository = new ProjectRepository(db);
+    const repository = new ProjectRepository();
     const project = await repository.update(id, input);
 
     if (!project) {
@@ -90,8 +87,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
-    const db = getDb();
-    const repository = new ProjectRepository(db);
+    const repository = new ProjectRepository();
     const deleted = await repository.delete(id);
 
     if (!deleted) {

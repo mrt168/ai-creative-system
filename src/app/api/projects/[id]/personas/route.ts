@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb } from '@/lib/db';
-import { ProjectRepository } from '@/lib/db/repositories/project';
-import { PersonaRepository } from '@/lib/db/repositories/persona';
+import { ProjectRepository, PersonaRepository } from '@/lib/supabase/repositories';
 import { ApiResponse } from '@/types/api';
 
 interface RouteParams {
@@ -12,9 +10,8 @@ interface RouteParams {
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
-    const db = getDb();
-    const projectRepository = new ProjectRepository(db);
-    const personaRepository = new PersonaRepository(db);
+    const projectRepository = new ProjectRepository();
+    const personaRepository = new PersonaRepository();
 
     // Verify project exists
     const project = await projectRepository.findById(id);
@@ -63,9 +60,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const db = getDb();
-    const projectRepository = new ProjectRepository(db);
-    const personaRepository = new PersonaRepository(db);
+    const projectRepository = new ProjectRepository();
+    const personaRepository = new PersonaRepository();
 
     // Verify project exists
     const project = await projectRepository.findById(id);
