@@ -59,9 +59,31 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
   const [refreshingBanners, setRefreshingBanners] = useState(false);
 
+  // Check if there are banners in progress (pending or generating)
+  const bannersInProgress = banners.filter(
+    (b) => b.status === 'pending' || b.status === 'generating'
+  );
+
   useEffect(() => {
     fetchData();
   }, [id]);
+
+  // Auto-polling for banners in progress
+  useEffect(() => {
+    if (bannersInProgress.length === 0) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const response = await fetch(`/api/projects/${id}/banners`);
+        const data = await response.json();
+        if (data.success) setBanners(data.data);
+      } catch (error) {
+        console.error('Error polling banners:', error);
+      }
+    }, 3000); // Poll every 3 seconds
+
+    return () => clearInterval(interval);
+  }, [id, bannersInProgress.length]);
 
   const fetchData = async () => {
     try {
@@ -250,6 +272,21 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
               </div>
             </CardContent>
           </Card>
+          {bannersInProgress.length > 0 && (
+            <Card className="border-blue-200 bg-blue-50">
+              <CardContent className="pt-6">
+                <div className="flex items-center">
+                  <Loader2 className="w-8 h-8 text-blue-500 mr-3 animate-spin" />
+                  <div>
+                    <p className="text-2xl font-bold text-blue-700">
+                      {bannersInProgress.length}
+                    </p>
+                    <p className="text-sm text-blue-600">生成中</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         <Tabs defaultValue="strategy" className="space-y-4">
@@ -399,8 +436,13 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                               alt="Banner"
                               className="w-full h-full object-cover"
                             />
-                          ) : banner.status === 'processing' ? (
-                            <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+                          ) : banner.status === 'generating' || banner.status === 'pending' ? (
+                            <div className="flex flex-col items-center">
+                              <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+                              <span className="text-xs text-blue-500 mt-2">
+                                {banner.status === 'pending' ? '待機中...' : '生成中...'}
+                              </span>
+                            </div>
                           ) : (
                             <ImageIcon className="w-8 h-8 text-gray-400" />
                           )}
@@ -418,8 +460,10 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                               className={
                                 banner.status === 'completed'
                                   ? 'bg-green-500'
-                                  : banner.status === 'processing'
-                                  ? 'bg-blue-500'
+                                  : banner.status === 'generating'
+                                  ? 'bg-blue-500 animate-pulse'
+                                  : banner.status === 'pending'
+                                  ? 'bg-yellow-500'
                                   : undefined
                               }
                             >
@@ -427,8 +471,8 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                 ? '完了'
                                 : banner.status === 'failed'
                                 ? '失敗'
-                                : banner.status === 'processing'
-                                ? '処理中'
+                                : banner.status === 'generating'
+                                ? '生成中'
                                 : '待機中'}
                             </Badge>
                             <span className="text-xs text-gray-500">{banner.aspectRatio}</span>

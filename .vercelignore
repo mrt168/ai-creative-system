@@ -1,0 +1,9 @@
+# Misc project files that should not be deployed
+etc_files/
+docs/meta*
+
+# Documentation and artifacts
+_docs/
+.artifacts/
+.worktree/
+.playwright-mcp/
