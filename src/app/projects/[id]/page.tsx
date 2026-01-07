@@ -11,6 +11,7 @@ import { ArrowLeft, Users, ImageIcon, Sparkles, Trash2, Settings, RefreshCw, Loa
 import { BannerGenerationDialog } from '@/components/banner-generation-dialog';
 import { BannerDetailDialog } from '@/components/banner-detail-dialog';
 import { PersonaDetailDialog } from '@/components/persona-detail-dialog';
+import { StrategyForm } from '@/components/strategy-form';
 
 interface Project {
   id: string;
@@ -251,11 +252,34 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
           </Card>
         </div>
 
-        <Tabs defaultValue="personas" className="space-y-4">
+        <Tabs defaultValue="strategy" className="space-y-4">
           <TabsList>
+            <TabsTrigger value="strategy">戦略設計</TabsTrigger>
             <TabsTrigger value="personas">ペルソナ</TabsTrigger>
             <TabsTrigger value="banners">バナー</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="strategy">
+            <Card>
+              <CardHeader>
+                <CardTitle>戦略設計</CardTitle>
+                <CardDescription>
+                  ターゲットを定義し、訴求軸を選択してバナーを生成します
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <StrategyForm
+                  projectId={id}
+                  onComplete={(data) => {
+                    console.log('Strategy completed:', data);
+                  }}
+                  onBannerGenerated={() => {
+                    refreshBanners();
+                  }}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="personas">
             <Card>

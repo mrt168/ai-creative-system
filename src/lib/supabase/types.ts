@@ -161,6 +161,53 @@ export interface Database {
           }
         ];
       };
+      acs_strategy_personas: {
+        Row: {
+          id: string;
+          project_id: string | null;
+          name: string;
+          gender: string | null;
+          age_from: number | null;
+          age_to: number | null;
+          issue: string | null;
+          funnel: string | null;
+          appeal_axes: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          project_id?: string | null;
+          name: string;
+          gender?: string | null;
+          age_from?: number | null;
+          age_to?: number | null;
+          issue?: string | null;
+          funnel?: string | null;
+          appeal_axes?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          project_id?: string | null;
+          name?: string;
+          gender?: string | null;
+          age_from?: number | null;
+          age_to?: number | null;
+          issue?: string | null;
+          funnel?: string | null;
+          appeal_axes?: Json;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'acs_strategy_personas_project_id_fkey';
+            columns: ['project_id'];
+            isOneToOne: false;
+            referencedRelation: 'acs_projects';
+            referencedColumns: ['id'];
+          }
+        ];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -189,3 +236,7 @@ export type UpdatePersona = Database['public']['Tables']['acs_personas']['Update
 export type Banner = Database['public']['Tables']['acs_banners']['Row'];
 export type NewBanner = Database['public']['Tables']['acs_banners']['Insert'];
 export type UpdateBanner = Database['public']['Tables']['acs_banners']['Update'];
+
+export type StrategyPersonaRow = Database['public']['Tables']['acs_strategy_personas']['Row'];
+export type NewStrategyPersona = Database['public']['Tables']['acs_strategy_personas']['Insert'];
+export type UpdateStrategyPersona = Database['public']['Tables']['acs_strategy_personas']['Update'];
