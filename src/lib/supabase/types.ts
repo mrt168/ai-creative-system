@@ -208,6 +208,106 @@ export interface Database {
           }
         ];
       };
+      acs_competitor_ads: {
+        Row: {
+          id: string;
+          project_id: string;
+          meta_ad_id: string;
+          page_name: string | null;
+          page_id: string | null;
+          ad_creative_body: string | null;
+          ad_snapshot_url: string | null;
+          media_type: string | null;
+          publisher_platforms: Json | null;
+          ad_delivery_start_date: string | null;
+          search_term: string | null;
+          country_code: string | null;
+          analysis: Json | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          project_id: string;
+          meta_ad_id: string;
+          page_name?: string | null;
+          page_id?: string | null;
+          ad_creative_body?: string | null;
+          ad_snapshot_url?: string | null;
+          media_type?: string | null;
+          publisher_platforms?: Json | null;
+          ad_delivery_start_date?: string | null;
+          search_term?: string | null;
+          country_code?: string | null;
+          analysis?: Json | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          project_id?: string;
+          meta_ad_id?: string;
+          page_name?: string | null;
+          page_id?: string | null;
+          ad_creative_body?: string | null;
+          ad_snapshot_url?: string | null;
+          media_type?: string | null;
+          publisher_platforms?: Json | null;
+          ad_delivery_start_date?: string | null;
+          search_term?: string | null;
+          country_code?: string | null;
+          analysis?: Json | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'acs_competitor_ads_project_id_fkey';
+            columns: ['project_id'];
+            isOneToOne: false;
+            referencedRelation: 'acs_projects';
+            referencedColumns: ['id'];
+          }
+        ];
+      };
+      acs_competitor_analyses: {
+        Row: {
+          id: string;
+          project_id: string;
+          search_term: string;
+          country_code: string | null;
+          ad_count: number | null;
+          analysis_summary: Json | null;
+          appeal_axes_distribution: Json | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          project_id: string;
+          search_term: string;
+          country_code?: string | null;
+          ad_count?: number | null;
+          analysis_summary?: Json | null;
+          appeal_axes_distribution?: Json | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          project_id?: string;
+          search_term?: string;
+          country_code?: string | null;
+          ad_count?: number | null;
+          analysis_summary?: Json | null;
+          appeal_axes_distribution?: Json | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'acs_competitor_analyses_project_id_fkey';
+            columns: ['project_id'];
+            isOneToOne: false;
+            referencedRelation: 'acs_projects';
+            referencedColumns: ['id'];
+          }
+        ];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -240,3 +340,11 @@ export type UpdateBanner = Database['public']['Tables']['acs_banners']['Update']
 export type StrategyPersonaRow = Database['public']['Tables']['acs_strategy_personas']['Row'];
 export type NewStrategyPersona = Database['public']['Tables']['acs_strategy_personas']['Insert'];
 export type UpdateStrategyPersona = Database['public']['Tables']['acs_strategy_personas']['Update'];
+
+export type CompetitorAd = Database['public']['Tables']['acs_competitor_ads']['Row'];
+export type NewCompetitorAd = Database['public']['Tables']['acs_competitor_ads']['Insert'];
+export type UpdateCompetitorAd = Database['public']['Tables']['acs_competitor_ads']['Update'];
+
+export type CompetitorAnalysis = Database['public']['Tables']['acs_competitor_analyses']['Row'];
+export type NewCompetitorAnalysis = Database['public']['Tables']['acs_competitor_analyses']['Insert'];
+export type UpdateCompetitorAnalysis = Database['public']['Tables']['acs_competitor_analyses']['Update'];
