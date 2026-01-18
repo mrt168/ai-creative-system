@@ -12,6 +12,7 @@ import { BannerGenerationDialog } from '@/components/banner-generation-dialog';
 import { BannerDetailDialog } from '@/components/banner-detail-dialog';
 import { PersonaDetailDialog } from '@/components/persona-detail-dialog';
 import { StrategyForm } from '@/components/strategy-form';
+import { CompetitorAnalysisSection, CompetitorAnalysisResult } from '@/components/CompetitorAnalysisSection';
 
 interface Project {
   id: string;
@@ -58,6 +59,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   const [selectedBanner, setSelectedBanner] = useState<Banner | null>(null);
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
   const [refreshingBanners, setRefreshingBanners] = useState(false);
+  const [competitorAnalysis, setCompetitorAnalysis] = useState<CompetitorAnalysisResult | null>(null);
 
   // Check if there are banners in progress (pending or generating)
   const bannersInProgress = banners.filter(
@@ -296,12 +298,28 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
             <TabsTrigger value="banners">バナー</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="strategy">
+          <TabsContent value="strategy" className="space-y-6">
+            {/* Competitor Analysis Section */}
+            <CompetitorAnalysisSection
+              projectId={id}
+              productName={project.productName ?? undefined}
+              productCategory={project.productCategory ?? undefined}
+              onAnalysisComplete={(analysis) => {
+                setCompetitorAnalysis(analysis);
+              }}
+            />
+
+            {/* Strategy Form */}
             <Card>
               <CardHeader>
                 <CardTitle>戦略設計</CardTitle>
                 <CardDescription>
                   ターゲットを定義し、訴求軸を選択してバナーを生成します
+                  {competitorAnalysis && (
+                    <span className="block mt-1 text-green-600">
+                      ✓ 競合分析結果を反映できます
+                    </span>
+                  )}
                 </CardDescription>
               </CardHeader>
               <CardContent>
