@@ -1,6 +1,7 @@
 import { GeminiClient, ImageResult } from './client';
 import { GeneratedPersona } from './persona-analyzer';
 import { buildBannerPrompt } from '../utils/prompts';
+import { uploadImage, isServerlessEnvironment } from '../supabase/storage';
 import * as fs from 'fs/promises';
 import path from 'path';
 import { randomUUID } from 'crypto';
@@ -67,7 +68,7 @@ export class ImageGenerator {
         return { success: false, error: 'Failed to generate image' };
       }
 
-      // Save image to disk
+      // Save image (to Supabase Storage in serverless, local filesystem otherwise)
       const imagePath = await this.saveImage(imageResult);
 
       return { success: true, imagePath };
@@ -109,18 +110,35 @@ export class ImageGenerator {
   }
 
   private async saveImage(imageResult: ImageResult): Promise<string> {
+    // Decode base64 to buffer
+    const buffer = Buffer.from(imageResult.data, 'base64');
+
+    // Check if running in serverless environment (Vercel)
+    if (isServerlessEnvironment()) {
+      // Upload to Supabase Storage
+      const result = await uploadImage(buffer, imageResult.mimeType);
+      if (!result.success || !result.url) {
+        throw new Error(result.error || 'Failed to upload to Supabase Storage');
+      }
+      return result.url;
+    }
+
+    // Local filesystem storage (for development)
+    return this.saveToLocalFilesystem(buffer, imageResult.mimeType);
+  }
+
+  private async saveToLocalFilesystem(buffer: Buffer, mimeType: string): Promise<string> {
     // Ensure output directory exists
     await fs.mkdir(this.outputDir, { recursive: true });
 
     // Determine file extension
-    const extension = this.getExtensionFromMimeType(imageResult.mimeType);
+    const extension = this.getExtensionFromMimeType(mimeType);
 
     // Generate unique filename
     const filename = `banner_${randomUUID()}${extension}`;
     const filePath = path.join(this.outputDir, filename);
 
-    // Decode base64 and write to file
-    const buffer = Buffer.from(imageResult.data, 'base64');
+    // Write to file
     await fs.writeFile(filePath, buffer);
 
     // Return web-accessible path (relative to public folder)
